@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 
 
-import elasticapm
 import os
+
+import elasticapm
 
 try:
     from odoo.tools.config import config
@@ -25,7 +26,7 @@ elastic_apm_client = elasticapm.Client(
     framework_version=odoo_version,
     service_name=os.environ.get("ELASTIC_APM_SERVICE_NAME", "Odoo"),
     environment=environment,
-    )
+)
 
 
 # The elasticapm lib will import gevent odoo think that we launch him in gevent mode

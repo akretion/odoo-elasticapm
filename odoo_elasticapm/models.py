@@ -14,17 +14,17 @@ except ImportError:
 
 def build_params(self, method):
     return {
-        'name': "ORM %s %s" % (self._name, method),
-        'span_type': 'odoo',
-        'span_subtype': 'orm',
-        'extra': {
-            'odoo': {
-                'class': self._name,
-                'method': method,
-                'nbr_record': hasattr(self, '_ids') and len(self) or 0,
-                }
+        "name": "ORM {} {}".format(self._name, method),
+        "span_type": "odoo",
+        "span_subtype": "orm",
+        "extra": {
+            "odoo": {
+                "class": self._name,
+                "method": method,
+                "nbr_record": hasattr(self, "_ids") and len(self) or 0,
             }
-        }
+        },
+    }
 
 
 Model = models.Model
@@ -47,28 +47,66 @@ def write(self, vals):
 
 
 if odoo_version in ["8.0", "9.0"]:
+
     def unlink(self, cr, uid, ids, context=None):
         with elasticapm.capture_span(**build_params(self, "unlink")):
             return ori_unlink(self, cr, uid, ids, context=context)
 
-
-    def _search(self, cr, uid, args, offset=0, limit=None, order=None,
-                context=None, count=False, access_rights_uid=None):
+    def _search(
+        self,
+        cr,
+        uid,
+        args,
+        offset=0,
+        limit=None,
+        order=None,
+        context=None,
+        count=False,
+        access_rights_uid=None,
+    ):
         with elasticapm.capture_span(**build_params(self, "search")):
-            return ori_search(self, cr, uid, args, offset=offset, limit=limit, order=order,
-                       context=context, count=count, access_rights_uid=access_rights_uid)
+            return ori_search(
+                self,
+                cr,
+                uid,
+                args,
+                offset=offset,
+                limit=limit,
+                order=order,
+                context=context,
+                count=count,
+                access_rights_uid=access_rights_uid,
+            )
+
+
 else:
+
     @api.multi
     def unlink(self):
         with elasticapm.capture_span(**build_params(self, "unlink")):
             return ori_unlink(self)
 
     @api.model
-    def _search(self, args, offset=0, limit=None, order=None,
-                count=False, access_rights_uid=None):
+    def _search(
+        self,
+        args,
+        offset=0,
+        limit=None,
+        order=None,
+        count=False,
+        access_rights_uid=None,
+    ):
         with elasticapm.capture_span(**build_params(self, "search")):
-            return ori_search(self, args,offset=offset, limit=limit, order=order,
-                       count=count, access_rights_uid=access_rights_uid)
+            return ori_search(
+                self,
+                args,
+                offset=offset,
+                limit=limit,
+                order=order,
+                count=count,
+                access_rights_uid=access_rights_uid,
+            )
+
 
 Model.create = create
 Model.write = write
