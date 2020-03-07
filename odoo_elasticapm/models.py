@@ -4,7 +4,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 
-from .base import elasticapm
+from .base import elasticapm, odoo_version
 
 try:
     from odoo import api, models
@@ -46,17 +46,29 @@ def write(self, vals):
         return ori_write(self, vals)
 
 
-def unlink(self, cr, uid, ids, context=None):
-    with elasticapm.capture_span(**build_params(self, "unlink")):
-        return ori_unlink(self, cr, uid, ids, context=context)
+if odoo_version in ["8.0", "9.0"]:
+    def unlink(self, cr, uid, ids, context=None):
+        with elasticapm.capture_span(**build_params(self, "unlink")):
+            return ori_unlink(self, cr, uid, ids, context=context)
 
 
-def _search(self, cr, uid, args, offset=0, limit=None, order=None,
-            context=None, count=False, access_rights_uid=None):
-    with elasticapm.capture_span(**build_params(self, "search")):
-        return ori_search(self, cr, uid, args, offset=offset, limit=limit, order=order,
-                   context=context, count=count, access_rights_uid=access_rights_uid)
+    def _search(self, cr, uid, args, offset=0, limit=None, order=None,
+                context=None, count=False, access_rights_uid=None):
+        with elasticapm.capture_span(**build_params(self, "search")):
+            return ori_search(self, cr, uid, args, offset=offset, limit=limit, order=order,
+                       context=context, count=count, access_rights_uid=access_rights_uid)
+else:
+    @api.multi
+    def unlink(self):
+        with elasticapm.capture_span(**build_params(self, "unlink")):
+            return ori_unlink(self)
 
+    @api.model
+    def _search(self, args, offset=0, limit=None, order=None,
+                count=False, access_rights_uid=None):
+        with elasticapm.capture_span(**build_params(self, "search")):
+            return ori_search(self, args,offset=offset, limit=limit, order=order,
+                       count=count, access_rights_uid=access_rights_uid)
 
 Model.create = create
 Model.write = write
