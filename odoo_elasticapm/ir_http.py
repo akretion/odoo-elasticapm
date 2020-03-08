@@ -37,6 +37,7 @@ def skip_tracing():
 
 def before_dispatch():
     elastic_apm_client.begin_transaction("request")
+    elasticapm.set_user_context(user_id=request.session.uid)
 
 
 def after_dispatch(response):

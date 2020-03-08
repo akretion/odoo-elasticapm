@@ -3,7 +3,7 @@
 # @author Sébastien BEAU <sebastien.beau@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from .base import elastic_apm_client, odoo_version
+from .base import elastic_apm_client, elasticapm, odoo_version
 
 try:
     from odoo.addons.base.models.ir_cron import ir_cron as IrCron
@@ -14,8 +14,9 @@ except ImportError:
         from openerp.addons.base.ir.ir_cron import ir_cron as IrCron
 
 
-def before_cron():
+def before_cron(job):
     elastic_apm_client.begin_transaction("cron")
+    elasticapm.set_user_context(user_id=job["user_id"])
 
 
 def after_cron(job):
@@ -32,7 +33,7 @@ ori_process_job = IrCron._process_job
 if odoo_version in ["8.0", "9.0"]:
 
     def _process_job(self, job_cr, job, cron_cr):
-        before_cron()
+        before_cron(job)
         ori_process_job(self, job_cr, job, cron_cr)
         after_cron(job)
 
@@ -41,7 +42,7 @@ else:
 
     @classmethod
     def _process_job(cls, job_cr, job, cron_cr):
-        before_cron()
+        before_cron(job)
         ori_process_job(job_cr, job, cron_cr)
         after_cron(job)
 
