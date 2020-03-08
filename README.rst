@@ -34,3 +34,7 @@ ELASTIC_APM_SERVER_URL=http://apm-server:8200
 The following one are optionnal:
 
 ELASTIC_APM_SERVICE_NAME=my-customer
+ELASTIC_APM_TRANSACTION_SAMPLE_RATE=0.1
+
+All environment variable are available on official documentation:
+https://www.elastic.co/guide/en/apm/agent/python/current/configuration.html
