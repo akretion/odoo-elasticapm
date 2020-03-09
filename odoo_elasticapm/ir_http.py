@@ -3,7 +3,7 @@
 # @author Sébastien BEAU <sebastien.beau@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from .base import elastic_apm_client, elasticapm, odoo_version
+from .base import elastic_apm_client, elasticapm, version_older_then
 from .http import get_data_from_request
 
 try:
@@ -52,7 +52,7 @@ def after_dispatch(response):
     elastic_apm_client.end_transaction(name, response.status_code)
 
 
-if odoo_version in ["8.0", "9.0"]:
+if version_older_then("10.0"):
 
     def _dispatch(self):
         if skip_tracing():

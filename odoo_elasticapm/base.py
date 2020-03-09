@@ -14,6 +14,13 @@ except ImportError:
 
 odoo_version = odoo.release.version
 
+
+def version_older_then(version):
+    return (
+        odoo.tools.parse_version(odoo_version)[0] < odoo.tools.parse_version(version)[0]
+    )
+
+
 if os.environ.get("ELASTIC_APM_ENVIRONMENT"):
     environment = os.environ.get("ELASTIC_APM_ENVIRONMENT")
 else:

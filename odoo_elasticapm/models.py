@@ -4,7 +4,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 
-from .base import elasticapm, odoo_version
+from .base import elasticapm, version_older_then
 
 try:
     from odoo import api, models
@@ -40,7 +40,7 @@ def write(self, vals):
         return ori_write(self, vals)
 
 
-if odoo_version in ["8.0", "9.0", "10.0", "11.0"]:
+if version_older_then("11.0"):
 
     @api.model
     @api.returns("self", lambda value: value.id)
@@ -58,7 +58,7 @@ else:
             return ori_create(self, vals)
 
 
-if odoo_version in ["8.0", "9.0"]:
+if version_older_then("10.0"):
 
     def unlink(self, cr, uid, ids, context=None):
         with elasticapm.capture_span(**build_params(self, "unlink")):
