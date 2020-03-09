@@ -34,93 +34,41 @@ ori_search = Model._search
 ori_unlink = Model.unlink
 
 
-@api.multi
 def write(self, vals):
     with elasticapm.capture_span(**build_params(self, "write")):
         return ori_write(self, vals)
 
 
+@api.returns("self", lambda value: value.id)
+def create(self, vals):
+    with elasticapm.capture_span(**build_params(self, "create")):
+        return ori_create(self, vals)
+
+
+def _search(self, *args, **kwargs):
+    with elasticapm.capture_span(**build_params(self, "search")):
+        return ori_search(self, *args, **kwargs)
+
+
+def unlink(self):
+    with elasticapm.capture_span(**build_params(self, "unlink")):
+        return ori_unlink(self)
+
+
+if version_older_then("13.0"):
+    unlink = api.multi(unlink)
+    write = api.multi(write)
+
 if version_older_then("12.0"):
-
-    @api.model
-    @api.returns("self", lambda value: value.id)
-    def create(self, vals):
-        with elasticapm.capture_span(**build_params(self, "create")):
-            return ori_create(self, vals)
-
-
+    create = api.model(create)
 else:
-
-    @api.model_create_multi
-    @api.returns("self", lambda value: value.id)
-    def create(self, vals):
-        with elasticapm.capture_span(**build_params(self, "create")):
-            return ori_create(self, vals)
+    create = api.model_create_multi(create)
 
 
 if version_older_then("10.0"):
-
-    @api.cr_uid_ids_context
-    def unlink(self, cr, uid, ids, context=None):
-        with elasticapm.capture_span(**build_params(self, "unlink")):
-            return ori_unlink(self, cr, uid, ids, context=context)
-
-    @api.cr_uid_context
-    def _search(
-        self,
-        cr,
-        uid,
-        args,
-        offset=0,
-        limit=None,
-        order=None,
-        context=None,
-        count=False,
-        access_rights_uid=None,
-    ):
-        with elasticapm.capture_span(**build_params(self, "search")):
-            return ori_search(
-                self,
-                cr,
-                uid,
-                args,
-                offset=offset,
-                limit=limit,
-                order=order,
-                context=context,
-                count=count,
-                access_rights_uid=access_rights_uid,
-            )
-
-
+    _search = api.cr_uid_context(_search)
 else:
-
-    @api.multi
-    def unlink(self):
-        with elasticapm.capture_span(**build_params(self, "unlink")):
-            return ori_unlink(self)
-
-    @api.model
-    def _search(
-        self,
-        args,
-        offset=0,
-        limit=None,
-        order=None,
-        count=False,
-        access_rights_uid=None,
-    ):
-        with elasticapm.capture_span(**build_params(self, "search")):
-            return ori_search(
-                self,
-                args,
-                offset=offset,
-                limit=limit,
-                order=order,
-                count=count,
-                access_rights_uid=access_rights_uid,
-            )
-
+    _search = api.model(_search)
 
 Model.create = create
 Model.write = write
