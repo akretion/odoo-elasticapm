@@ -7,6 +7,7 @@ from .base import elastic_apm_client, elasticapm, version_older_then
 
 try:
     from odoo.addons.base.models.ir_cron import ir_cron as IrCron
+    from odoo import api
 except ImportError:
     try:
         from odoo.addons.base.ir.ir_cron import ir_cron as IrCron

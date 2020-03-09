@@ -40,7 +40,7 @@ def write(self, vals):
         return ori_write(self, vals)
 
 
-if version_older_then("11.0"):
+if version_older_then("12.0"):
 
     @api.model
     @api.returns("self", lambda value: value.id)
