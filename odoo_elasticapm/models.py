@@ -60,10 +60,12 @@ else:
 
 if version_older_then("10.0"):
 
+    @api.cr_uid_ids_context
     def unlink(self, cr, uid, ids, context=None):
         with elasticapm.capture_span(**build_params(self, "unlink")):
             return ori_unlink(self, cr, uid, ids, context=context)
 
+    @api.cr_uid_context
     def _search(
         self,
         cr,
