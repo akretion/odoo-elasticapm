@@ -34,16 +34,28 @@ ori_search = Model._search
 ori_unlink = Model.unlink
 
 
-@api.model
-def create(self, vals):
-    with elasticapm.capture_span(**build_params(self, "create")):
-        return ori_create(self, vals)
-
-
 @api.multi
 def write(self, vals):
     with elasticapm.capture_span(**build_params(self, "write")):
         return ori_write(self, vals)
+
+
+if odoo_version in ["8.0", "9.0", "10.0", "11.0"]:
+
+    @api.model
+    @api.returns("self", lambda value: value.id)
+    def create(self, vals):
+        with elasticapm.capture_span(**build_params(self, "create")):
+            return ori_create(self, vals)
+
+
+else:
+
+    @api.model_create_multi
+    @api.returns("self", lambda value: value.id)
+    def create(self, vals):
+        with elasticapm.capture_span(**build_params(self, "create")):
+            return ori_create(self, vals)
 
 
 if odoo_version in ["8.0", "9.0"]:
