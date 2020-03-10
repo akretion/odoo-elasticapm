@@ -17,7 +17,7 @@ except ImportError:
         from openerp.addons.base.ir.ir_http import ir_http as IrHttp
         from openerp.http import request
 
-SKIP_PATH = ["/connector/runjob", "/longpolling/"]
+SKIP_PATH = ["/connector/runjob", "/longpolling/", "/web_editor"]
 
 
 ori_dispatch = IrHttp._dispatch

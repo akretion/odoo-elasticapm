@@ -12,44 +12,52 @@ stages:
   - name: deploy
     if: tag IS present
 
+env:
+  global:
+    - ODOO_REPO="odoo/odoo" LINT_CHECK="0" WKHTMLTOPDF_VERSION="0.12.5"
+
 jobs:
   include:
     - stage: linting
       python: 3.6
-      env: TOXENV=pre_commit
+      script: pre-commit run --all-files
+      env: LINT_CHECK="1"
     - stage: linting
       python: 3.6
-      env: TOXENV=check_readme
+      script:
+        - pip wheel -w /tmp/build --no-deps .
+        - twine check /tmp/build/*
+      env: LINT_CHECK="1"
     - stage: test
       python: 2.7
-      env: ODOO="8.0"
+      env: VERSION="8.0"
     - stage: test
       python: 2.7
-      env: ODOO="9.0"
+      env: VERSION="9.0"
     - stage: test
       python: 2.7
-      env: ODOO="10.0"
+      env: VERSION="10.0"
     - stage: test
       python: 3.5
-      env: ODOO="11.0"
+      env: VERSION="11.0"
     - stage: test
       python: 3.5
-      env: ODOO="12.0"
+      env: VERSION="12.0"
     - stage: test
       python: 3.6
-      env: ODOO="12.0"
+      env: VERSION="12.0"
     - stage: test
       python: 3.7
-      env: ODOO="12.0"
+      env: VERSION="12.0"
     - stage: test
       python: 3.6
-      env: ODOO="13.0"
+      env: VERSION="13.0"
     - stage: test
       python: 3.8-dev
-      env: ODOO="12.0"
+      env: VERSION="12.0"
     - stage: test
       python: 3.7
-      env: ODOO="master"
+      env: VERSION="master"
     - stage: deploy
       script: echo "Deploy to PyPi"
       deploy:
@@ -68,11 +76,17 @@ jobs:
     - env: ODOO="master"
 
 install:
-  - pip install tox-travis
   - pip install codecov
 
+before_script:
+  - tests/script/install_odoo
+  - pip install -e .
+
 script:
-  - tox
+  - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+  - createdb db
+  - odoo-elasticapm -d db -i sale,stock,purchase --stop-after-init --test-enable
+
 
 after_success:
   - codecov
