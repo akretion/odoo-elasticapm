@@ -54,9 +54,9 @@ jobs:
       script: echo "Deploy to PyPi"
       deploy:
         provider: pypi
-        user: acsbidoul
+        user: __token__
         password:
-          secure: ""
+          secure: Xpdjpet+SZ9bCzQ/ycrf0/nvRwO4FTs4DTHU6fZL/SGlIXr3qu7xL3Q2PWjeMcHqsk9rf/AdEPIzBAh3mQ1z/cWQ2KderYFelNQZEgR8L60x0AZwDw1UsdFHW9bgDOtITHvazkPoV/9AKXW0hNeKyh3H8t7kxcq2YPA+5lHLPdm7NuqGzkpqeWm/7qHB09UHxu/8QvTfuQ4v5oVKHAiKpugogxtOk3WEmRLEr9nsN++OXccj8l1Tkkue7uREOJ9Ybu71O5EHLjqEJuQ2Qn9Ht1hPux+6bWlpSxeQDgeIExpL42OQBie8UCFtzUYOCUK2dqMY+WiSfwVwKDcIeP5VHDbrhmWkJM1MXhd27soMSOpKm9V/UsIrJRnBgowOAuR7NDtDTsip5+iyhu131uqOe4wWGaCx90uGuWRFxgOk4rLgdRxu8rZX5IHOJpNHX4dXlwY+OTaeWNZLcxK4wf8PW4p0PDu9XZooxidMOpss7bgXoEu5gcelhWps8ZXk1cmGiAKFpRtzB7TlP+JdV3t4stLCP7eiLXY4DLFxyKEOqImeRvgUecxxkk6cozd6NY4dLSB134a6Z9k48B2obKBy5hrItNmwMP0QIqiuLeox4ZQZ7JaxyoI3DeaSSDXUX00uwvwmAUGP2KEE/FVsdrlInN60CsFuAtrEmM9TkN9AfKI=
         distributions: "sdist bdist_wheel"
         skip_upload_docs: true
         on:
