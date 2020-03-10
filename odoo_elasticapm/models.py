@@ -27,11 +27,11 @@ def build_params(self, method):
     }
 
 
-Model = models.Model
-ori_create = Model.create
-ori_write = Model.write
-ori_search = Model._search
-ori_unlink = Model.unlink
+BaseModel = models.BaseModel
+ori_create = BaseModel.create
+ori_write = BaseModel.write
+ori_search = BaseModel._search
+ori_unlink = BaseModel.unlink
 
 
 def write(self, vals):
@@ -70,7 +70,7 @@ if version_older_then("10.0"):
 else:
     _search = api.model(_search)
 
-Model.create = create
-Model.write = write
-Model._search = _search
-Model.unlink = unlink
+BaseModel.create = create
+BaseModel.write = write
+BaseModel._search = _search
+BaseModel.unlink = unlink
