@@ -73,7 +73,9 @@ jobs:
           tags: true
   allow_failures:
     - python: 3.8-dev
-    - env: ODOO="master"
+    - env: VERSION="master"
+    - env: VERSION="12.0"
+    - env: VERSION="13.0"
 
 install:
   - pip install codecov
