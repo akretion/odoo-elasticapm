@@ -14,20 +14,20 @@ stages:
 
 env:
   global:
-    - ODOO_REPO="odoo/odoo" LINT_CHECK="0" WKHTMLTOPDF_VERSION="0.12.5"
+    - ODOO_REPO="odoo/odoo" INSTALL_ODOO="1" WKHTMLTOPDF_VERSION="0.12.5" LINT_CHECK="0"
 
 jobs:
   include:
     - stage: linting
       python: 3.6
       script: pre-commit run --all-files
-      env: LINT_CHECK="1"
+      env: INSTALL_ODOO="0"
     - stage: linting
       python: 3.6
       script:
         - pip wheel -w /tmp/build --no-deps .
         - twine check /tmp/build/*
-      env: LINT_CHECK="1"
+      env: INSTALL_ODOO="0"
     - stage: test
       python: 2.7
       env: VERSION="8.0"
@@ -60,6 +60,7 @@ jobs:
       env: VERSION="master"
     - stage: deploy
       script: echo "Deploy to PyPi"
+      env: INSTALL_ODOO="0"
       deploy:
         provider: pypi
         user: __token__
@@ -73,7 +74,9 @@ jobs:
           tags: true
   allow_failures:
     - python: 3.8-dev
-    - env: ODOO="master"
+    - env: VERSION="master"
+    - env: VERSION="12.0"
+    - env: VERSION="13.0"
 
 install:
   - pip install codecov
@@ -85,7 +88,7 @@ before_script:
 script:
   - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
   - createdb db
-  - odoo-elasticapm -d db -i sale,stock,purchase --stop-after-init --test-enable
+  - odoo-elasticapm -d db -i sale,purchase,stock --stop-after-init --test-enable
 
 
 after_success:

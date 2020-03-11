@@ -2,7 +2,7 @@
 
 set -ex
 
-if [ "${LINT_CHECK}" == "0" ]; then
+if [ "${INSTALL_ODOO}" == "1" ]; then
   git clone --depth=1 https://github.com/OCA/maintainer-quality-tools.git ${HOME}/maintainer-quality-tools
   sed -i s/set\ -e/set\ -ex/g ${HOME}/maintainer-quality-tools/travis/travis_install_nightly
   export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
