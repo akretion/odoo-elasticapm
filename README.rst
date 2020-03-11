@@ -38,3 +38,10 @@ ELASTIC_APM_TRANSACTION_SAMPLE_RATE=0.1
 
 All environment variable are available on official documentation:
 https://www.elastic.co/guide/en/apm/agent/python/current/configuration.html
+
+
+Issue
+~~~~~~~
+We still have issue on travis regarding verison 12 and 13 (I fail to reproduce them locally)
+If you want to use it on this version be carefull.
+Contibution and help is welcome
