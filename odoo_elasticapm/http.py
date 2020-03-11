@@ -65,7 +65,11 @@ def _handle_exception(self, exception):
     for exception_class in EXCEPTIONS:
         if isinstance(exception, exception_class):
             handled = True
-    elasticapm.label(exception_type=type(exception).__name__, exception_handled=handled)
+    elasticapm.label(
+        exception_source="request",
+        exception_type=type(exception).__name__,
+        exception_handled=handled,
+    )
     elastic_apm_client.capture_exception(
         context={"request": get_data_from_request()}, handled=handled
     )

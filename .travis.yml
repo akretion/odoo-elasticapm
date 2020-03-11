@@ -1,0 +1,92 @@
+dist: xenial
+language: python
+
+cache: pip
+
+addons:
+  postgresql: "9.6"
+
+stages:
+  - name: linting
+  - name: test
+  - name: deploy
+    if: tag IS present
+
+env:
+  global:
+    - ODOO_REPO="odoo/odoo" LINT_CHECK="0" WKHTMLTOPDF_VERSION="0.12.5"
+
+jobs:
+  include:
+    - stage: linting
+      python: 3.6
+      script: pre-commit run --all-files
+      env: LINT_CHECK="1"
+    - stage: linting
+      python: 3.6
+      script:
+        - pip wheel -w /tmp/build --no-deps .
+        - twine check /tmp/build/*
+      env: LINT_CHECK="1"
+    - stage: test
+      python: 2.7
+      env: VERSION="8.0"
+    - stage: test
+      python: 2.7
+      env: VERSION="9.0"
+    - stage: test
+      python: 2.7
+      env: VERSION="10.0"
+    - stage: test
+      python: 3.5
+      env: VERSION="11.0"
+    - stage: test
+      python: 3.5
+      env: VERSION="12.0"
+    - stage: test
+      python: 3.6
+      env: VERSION="12.0"
+    - stage: test
+      python: 3.7
+      env: VERSION="12.0"
+    - stage: test
+      python: 3.6
+      env: VERSION="13.0"
+    - stage: test
+      python: 3.8-dev
+      env: VERSION="12.0"
+    - stage: test
+      python: 3.7
+      env: VERSION="master"
+    - stage: deploy
+      script: echo "Deploy to PyPi"
+      deploy:
+        provider: pypi
+        user: __token__
+        password:
+          secure: Xpdjpet+SZ9bCzQ/ycrf0/nvRwO4FTs4DTHU6fZL/SGlIXr3qu7xL3Q2PWjeMcHqsk9rf/AdEPIzBAh3mQ1z/cWQ2KderYFelNQZEgR8L60x0AZwDw1UsdFHW9bgDOtITHvazkPoV/9AKXW0hNeKyh3H8t7kxcq2YPA+5lHLPdm7NuqGzkpqeWm/7qHB09UHxu/8QvTfuQ4v5oVKHAiKpugogxtOk3WEmRLEr9nsN++OXccj8l1Tkkue7uREOJ9Ybu71O5EHLjqEJuQ2Qn9Ht1hPux+6bWlpSxeQDgeIExpL42OQBie8UCFtzUYOCUK2dqMY+WiSfwVwKDcIeP5VHDbrhmWkJM1MXhd27soMSOpKm9V/UsIrJRnBgowOAuR7NDtDTsip5+iyhu131uqOe4wWGaCx90uGuWRFxgOk4rLgdRxu8rZX5IHOJpNHX4dXlwY+OTaeWNZLcxK4wf8PW4p0PDu9XZooxidMOpss7bgXoEu5gcelhWps8ZXk1cmGiAKFpRtzB7TlP+JdV3t4stLCP7eiLXY4DLFxyKEOqImeRvgUecxxkk6cozd6NY4dLSB134a6Z9k48B2obKBy5hrItNmwMP0QIqiuLeox4ZQZ7JaxyoI3DeaSSDXUX00uwvwmAUGP2KEE/FVsdrlInN60CsFuAtrEmM9TkN9AfKI=
+        distributions: "sdist bdist_wheel"
+        skip_upload_docs: true
+        on:
+          repo: akretion/odoo-elasticapm
+          branch: master
+          tags: true
+  allow_failures:
+    - python: 3.8-dev
+    - env: ODOO="master"
+
+install:
+  - pip install codecov
+
+before_script:
+  - tests/script/install_odoo
+  - pip install -e .
+
+script:
+  - export PATH=${HOME}/maintainer-quality-tools/travis:${PATH}
+  - createdb db
+  - odoo-elasticapm -d db -i sale,stock,purchase --stop-after-init --test-enable
+
+
+after_success:
+  - codecov

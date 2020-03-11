@@ -3,7 +3,7 @@
 # @author Sébastien BEAU <sebastien.beau@akretion.com>
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
-from .base import elastic_apm_client, elasticapm, odoo_version
+from .base import elastic_apm_client, elasticapm, version_older_then
 from .http import get_data_from_request
 
 try:
@@ -17,11 +17,7 @@ except ImportError:
         from openerp.addons.base.ir.ir_http import ir_http as IrHttp
         from openerp.http import request
 
-SKIP_PATH = ["/connector/runjob", "/longpolling/"]
-
-
-def get_data_from_response(response):
-    return {"status_code": response.status_code}
+SKIP_PATH = ["/connector/runjob", "/longpolling/", "/web_editor"]
 
 
 ori_dispatch = IrHttp._dispatch
@@ -48,11 +44,17 @@ def after_dispatch(response):
         if val and val not in name:
             name += " {}: {}".format(key, val)
     elasticapm.set_context(lambda: get_data_from_request(), "request")
-    elasticapm.set_context(lambda: get_data_from_response(response), "response")
-    elastic_apm_client.end_transaction(name, response.status_code)
+    try:
+        code = response.status_code
+    except Exception:
+        try:
+            code = response.code
+        except Exception:
+            code = "NoCodeFound"
+    elastic_apm_client.end_transaction(name, code)
 
 
-if odoo_version in ["8.0", "9.0"]:
+if version_older_then("10.0"):
 
     def _dispatch(self):
         if skip_tracing():

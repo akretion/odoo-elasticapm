@@ -4,7 +4,7 @@
 # License AGPL-3.0 or later (http://www.gnu.org/licenses/agpl).
 
 
-from .base import elasticapm, odoo_version
+from .base import elasticapm, version_older_then
 
 try:
     from odoo import api, models
@@ -27,88 +27,50 @@ def build_params(self, method):
     }
 
 
-Model = models.Model
-ori_create = Model.create
-ori_write = Model.write
-ori_search = Model._search
-ori_unlink = Model.unlink
+BaseModel = models.BaseModel
+ori_create = BaseModel.create
+ori_write = BaseModel.write
+ori_search = BaseModel._search
+ori_unlink = BaseModel.unlink
 
 
-@api.model
-def create(self, vals):
-    with elasticapm.capture_span(**build_params(self, "create")):
-        return ori_create(self, vals)
-
-
-@api.multi
 def write(self, vals):
     with elasticapm.capture_span(**build_params(self, "write")):
         return ori_write(self, vals)
 
 
-if odoo_version in ["8.0", "9.0"]:
-
-    def unlink(self, cr, uid, ids, context=None):
-        with elasticapm.capture_span(**build_params(self, "unlink")):
-            return ori_unlink(self, cr, uid, ids, context=context)
-
-    def _search(
-        self,
-        cr,
-        uid,
-        args,
-        offset=0,
-        limit=None,
-        order=None,
-        context=None,
-        count=False,
-        access_rights_uid=None,
-    ):
-        with elasticapm.capture_span(**build_params(self, "search")):
-            return ori_search(
-                self,
-                cr,
-                uid,
-                args,
-                offset=offset,
-                limit=limit,
-                order=order,
-                context=context,
-                count=count,
-                access_rights_uid=access_rights_uid,
-            )
+@api.returns("self", lambda value: value.id)
+def create(self, vals):
+    with elasticapm.capture_span(**build_params(self, "create")):
+        return ori_create(self, vals)
 
 
+def _search(self, *args, **kwargs):
+    with elasticapm.capture_span(**build_params(self, "search")):
+        return ori_search(self, *args, **kwargs)
+
+
+def unlink(self):
+    with elasticapm.capture_span(**build_params(self, "unlink")):
+        return ori_unlink(self)
+
+
+if version_older_then("13.0"):
+    unlink = api.multi(unlink)
+    write = api.multi(write)
+
+if version_older_then("12.0"):
+    create = api.model(create)
 else:
-
-    @api.multi
-    def unlink(self):
-        with elasticapm.capture_span(**build_params(self, "unlink")):
-            return ori_unlink(self)
-
-    @api.model
-    def _search(
-        self,
-        args,
-        offset=0,
-        limit=None,
-        order=None,
-        count=False,
-        access_rights_uid=None,
-    ):
-        with elasticapm.capture_span(**build_params(self, "search")):
-            return ori_search(
-                self,
-                args,
-                offset=offset,
-                limit=limit,
-                order=order,
-                count=count,
-                access_rights_uid=access_rights_uid,
-            )
+    create = api.model_create_multi(create)
 
 
-Model.create = create
-Model.write = write
-Model._search = _search
-Model.unlink = unlink
+if version_older_then("10.0"):
+    _search = api.cr_uid_context(_search)
+else:
+    _search = api.model(_search)
+
+BaseModel.create = create
+BaseModel.write = write
+BaseModel._search = _search
+BaseModel.unlink = unlink
