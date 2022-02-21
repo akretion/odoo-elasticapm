@@ -19,8 +19,38 @@ except ImportError:
 
 SKIP_PATH = ["/connector/runjob", "/longpolling/", "/web_editor"]
 
+def base_dispatch(cls):
+    cls._handle_debug()
 
-ori_dispatch = IrHttp._dispatch
+    # locate the controller method
+    try:
+        rule, arguments = cls._match(request.httprequest.path)
+        func = rule.endpoint
+    except werkzeug.exceptions.NotFound as e:
+        return cls._handle_exception(e)
+
+    # check authentication level
+    try:
+        auth_method = cls._authenticate(func)
+    except Exception as e:
+        return cls._handle_exception(e)
+
+    processing = cls._postprocess_args(arguments, rule)
+    if processing:
+        return processing
+
+    # set and execute handler
+    try:
+        request.set_handler(func, arguments, auth_method)
+        result = request.dispatch()
+        if isinstance(result, Exception):
+            raise result
+    except Exception as e:
+        return cls._handle_exception(e)
+
+    return result
+
+ori_dispatch = base_dispatch
 
 
 def skip_tracing():
@@ -32,11 +62,13 @@ def skip_tracing():
 
 
 def before_dispatch():
+    print("\n\n\n Called in before_dispatch \n\n\n")
     elastic_apm_client.begin_transaction("request")
     elasticapm.set_user_context(user_id=request.session.uid)
 
 
 def after_dispatch(response):
+    print("\n\n\n Called in after_dispatch \n\n\n")
     path_info = request.httprequest.environ.get("PATH_INFO")
     name = path_info
     for key in ["model", "method", "signal"]:
@@ -71,12 +103,13 @@ else:
     @classmethod
     def _dispatch(cls):
         if skip_tracing():
-            return ori_dispatch()
+            return ori_dispatch(cls)
         else:
             before_dispatch()
-            response = ori_dispatch()
+            response = ori_dispatch(cls)
             after_dispatch(response)
             return response
 
 
 IrHttp._dispatch = _dispatch
+
